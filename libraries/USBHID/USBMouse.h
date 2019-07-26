@@ -15,61 +15,98 @@
  * limitations under the License.
  */
 
-#ifndef USBMOUSEKEYBOARD_H
-#define USBMOUSEKEYBOARD_H
+#ifndef USBMOUSE_H
+#define USBMOUSE_H
 
-#define REPORT_ID_KEYBOARD 1
-#define REPORT_ID_MOUSE 2
-#define REPORT_ID_VOLUME 3
-
-#include "USBMouse.h"
-#include "USBKeyboard.h"
-#include "platform/Stream.h"
-#include "USBHID.h"
+#include "PluggableUSBHID.h"
 #include "PlatformMutex.h"
 
+namespace arduino {
+
+#define REPORT_ID_MOUSE   2
+
+/* Common usage */
+
+enum MOUSE_BUTTON {
+    MOUSE_LEFT = 1,
+    MOUSE_RIGHT = 2,
+    MOUSE_MIDDLE = 4,
+};
+
+/* X and Y limits */
+/* These values do not directly map to screen pixels */
+/* Zero may be interpreted as meaning 'no movement' */
+#define X_MIN_ABS    (1)        /*!< Minimum value on x-axis */
+#define Y_MIN_ABS    (1)        /*!< Minimum value on y-axis */
+#define X_MAX_ABS    (0x7fff)   /*!< Maximum value on x-axis */
+#define Y_MAX_ABS    (0x7fff)   /*!< Maximum value on y-axis */
+
+#define X_MIN_REL    (-127)     /*!< The maximum value that we can move to the left on the x-axis */
+#define Y_MIN_REL    (-127)     /*!< The maximum value that we can move up on the y-axis */
+#define X_MAX_REL    (127)      /*!< The maximum value that we can move to the right on the x-axis */
+#define Y_MAX_REL    (127)      /*!< The maximum value that we can move down on the y-axis */
+
+enum MOUSE_TYPE {
+    ABS_MOUSE,
+    REL_MOUSE,
+};
+
 /**
- * USBMouseKeyboard example
+ *
+ * USBMouse example
  * @code
- *
  * #include "mbed.h"
- * #include "USBMouseKeyboard.h"
+ * #include "USBMouse.h"
  *
- * USBMouseKeyboard key_mouse;
+ * USBMouse mouse;
  *
  * int main(void)
  * {
- *   while(1)
+ *   while (1)
  *   {
- *       key_mouse.move(20, 0);
- *       key_mouse.printf("Hello From MBED\r\n");
- *       wait(1);
+ *      mouse.move(20, 0);
+ *      wait(0.5);
  *   }
  * }
+ *
  * @endcode
  *
  *
  * @code
- *
  * #include "mbed.h"
- * #include "USBMouseKeyboard.h"
+ * #include "USBMouse.h"
+ * #include <math.h>
  *
- * USBMouseKeyboard key_mouse(ABS_MOUSE);
+ * USBMouse mouse(true, ABS_MOUSE);
  *
  * int main(void)
  * {
- *   while(1)
+ *   uint16_t x_center = (X_MAX_ABS - X_MIN_ABS)/2;
+ *   uint16_t y_center = (Y_MAX_ABS - Y_MIN_ABS)/2;
+ *   uint16_t x_screen = 0;
+ *   uint16_t y_screen = 0;
+ *
+ *   uint32_t x_origin = x_center;
+ *   uint32_t y_origin = y_center;
+ *   uint32_t radius = 5000;
+ *   uint32_t angle = 0;
+ *
+ *   while (1)
  *   {
- *       key_mouse.move(X_MAX_ABS/2, Y_MAX_ABS/2);
- *       key_mouse.printf("Hello from MBED\r\n");
- *       wait(1);
+ *       x_screen = x_origin + cos((double)angle*3.14/180.0)*radius;
+ *       y_screen = y_origin + sin((double)angle*3.14/180.0)*radius;
+ *
+ *       mouse.move(x_screen, y_screen);
+ *       angle += 3;
+ *       wait(0.01);
  *   }
  * }
+ *
  * @endcode
  *
  * @note Synchronization level: Thread safe
  */
-class USBMouseKeyboard: public USBHID, public mbed::Stream {
+class USBMouse: public USBHID {
 public:
 
     /**
@@ -81,12 +118,11 @@ public:
     *
     * @param connect_blocking true to perform a blocking connect, false to start in a disconnected state
     * @param mouse_type Mouse type: ABS_MOUSE (absolute mouse) or REL_MOUSE (relative mouse) (default: REL_MOUSE)
-    * @param vendor_id Your vendor_id (default: 0x1234)
-    * @param product_id Your product_id (default: 0x0001)
-    * @param product_release Your preoduct_release (default: 0x0001)
-    *
+    * @param vendor_id Your vendor_id
+    * @param product_id Your product_id
+    * @param product_release Your product_release
     */
-    USBMouseKeyboard(bool connect_blocking = true, MOUSE_TYPE mouse_type = REL_MOUSE, uint16_t vendor_id = 0x0021, uint16_t product_id = 0x0011, uint16_t product_release = 0x0001);
+    USBMouse(bool connect_blocking = true, MOUSE_TYPE mouse_type = REL_MOUSE, uint16_t vendor_id = 0x1234, uint16_t product_id = 0x0001, uint16_t product_release = 0x0001);
 
     /**
     * Fully featured constructor
@@ -101,12 +137,11 @@ public:
     *
     * @param phy USB phy to use
     * @param mouse_type Mouse type: ABS_MOUSE (absolute mouse) or REL_MOUSE (relative mouse) (default: REL_MOUSE)
-    * @param vendor_id Your vendor_id (default: 0x1234)
-    * @param product_id Your product_id (default: 0x0001)
-    * @param product_release Your preoduct_release (default: 0x0001)
-    *
+    * @param vendor_id Your vendor_id
+    * @param product_id Your product_id
+    * @param product_release Your product_release
     */
-    USBMouseKeyboard(USBPhy *phy, MOUSE_TYPE mouse_type = REL_MOUSE, uint16_t vendor_id = 0x0021, uint16_t product_id = 0x0011, uint16_t product_release = 0x0001);
+    USBMouse(USBPhy *phy, MOUSE_TYPE mouse_type = REL_MOUSE, uint16_t vendor_id = 0x1234, uint16_t product_id = 0x0001, uint16_t product_release = 0x0001);
 
     /**
      * Destroy this object
@@ -114,7 +149,7 @@ public:
      * Any classes which inherit from this class must call deinit
      * before this destructor runs.
      */
-    virtual ~USBMouseKeyboard();
+    virtual ~USBMouse();
 
     /**
     * Write a state of the mouse
@@ -126,7 +161,6 @@ public:
     * @returns true if there is no error, false otherwise
     */
     bool update(int16_t x, int16_t y, uint8_t buttons, int8_t z);
-
 
     /**
     * Move the cursor to (x, y)
@@ -158,7 +192,7 @@ public:
     *
     * @returns true if there is no error, false otherwise
     */
-    bool doubleClick();
+    bool double_click();
 
     /**
     * Click
@@ -176,46 +210,6 @@ public:
     */
     bool scroll(int8_t z);
 
-    /**
-    * To send a character defined by a modifier(CTRL, SHIFT, ALT) and the key
-    *
-    * @code
-    * //To send CTRL + s (save)
-    *  keyboard.keyCode('s', KEY_CTRL);
-    * @endcode
-    *
-    * @param modifier bit 0: KEY_CTRL, bit 1: KEY_SHIFT, bit 2: KEY_ALT (default: 0)
-    * @param key character to send
-    * @returns true if there is no error, false otherwise
-    */
-    bool key_code(uint8_t key, uint8_t modifier = 0);
-
-    /**
-    * Send a character
-    *
-    * @param c character to be sent
-    * @returns true if there is no error, false otherwise
-    */
-    virtual int _putc(int c);
-
-    /**
-    * Control media keys
-    *
-    * @param key media key pressed (KEY_NEXT_TRACK, KEY_PREVIOUS_TRACK, KEY_STOP, KEY_PLAY_PAUSE, KEY_MUTE, KEY_VOLUME_UP, KEY_VOLUME_DOWN)
-    * @returns true if there is no error, false otherwise
-    */
-    bool media_control(MEDIA_KEY key);
-
-    /**
-    * Read status of lock keys. Useful to switch-on/off leds according to key pressed. Only the first three bits of the result is important:
-    *   - First bit: NUM_LOCK
-    *   - Second bit: CAPS_LOCK
-    *   - Third bit: SCROLL_LOCK
-    *
-    * @returns status of lock keys
-    */
-    uint8_t lock_status();
-
     /*
     * To define the report descriptor. Warning: this method has to store the length of the report descriptor in reportLength.
     *
@@ -223,24 +217,22 @@ public:
     */
     virtual const uint8_t *report_desc();
 
+protected:
     /*
-    * Called when a data is received on the OUT endpoint. Useful to switch on LED of LOCK keys
+    * Get configuration descriptor
     *
-    * @returns if handle by subclass, return true
+    * @returns pointer to the configuration descriptor
     */
-    virtual void report_rx();
-
+    virtual const uint8_t *configuration_desc(uint8_t index);
 
 private:
     MOUSE_TYPE _mouse_type;
     uint8_t _button;
-    uint8_t _lock_status;
+    uint8_t _configuration_descriptor[41];
     PlatformMutex _mutex;
 
-    bool _mouse_send(int8_t x, int8_t y, uint8_t buttons, int8_t z);
-
-    //dummy otherwise it doesn't compile (we must define all methods of an abstract class)
-    virtual int _getc();
+    bool mouse_send(int8_t x, int8_t y, uint8_t buttons, int8_t z);
 };
+}
 
 #endif

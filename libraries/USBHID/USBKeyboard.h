@@ -18,9 +18,11 @@
 #ifndef USBKEYBOARD_H
 #define USBKEYBOARD_H
 
-#include "USBHID.h"
+#include "PluggableUSBHID.h"
 #include "platform/Stream.h"
 #include "PlatformMutex.h"
+
+namespace arduino {
 
 /* Modifiers, left keys then right keys. */
 enum MODIFIER_KEY {
@@ -95,7 +97,7 @@ enum FUNCTION_KEY {
  *
  * @note Synchronization level: Thread safe
  */
-class USBKeyboard: public USBHID, public mbed::Stream {
+class USBKeyboard: public USBHID, public ::mbed::Stream {
 public:
 
     /**
@@ -208,5 +210,6 @@ private:
     PlatformMutex _mutex;
 
 };
+}
 
 #endif

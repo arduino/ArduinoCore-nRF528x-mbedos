@@ -18,6 +18,7 @@
 #ifndef USBSERIAL_H
 #define USBSERIAL_H
 
+#include "Arduino.h"
 #include "USBCDC.h"
 #include "platform/Stream.h"
 #include "Callback.h"
@@ -42,7 +43,11 @@
 * }
 * @endcode
 */
-class USBSerial: public USBCDC, public mbed::Stream {
+
+namespace arduino {
+
+
+class USBSerial: public USBCDC, public ::mbed::Stream, public HardwareSerial {
 public:
 
     /**
@@ -107,7 +112,7 @@ public:
     *
     * @returns the number of bytes available
     */
-    uint8_t available();
+    uint8_t _available();
 
     /**
     * Check if the terminal is connected.
@@ -150,7 +155,7 @@ public:
         USBCDC::lock();
 
         if ((mptr != NULL) && (tptr != NULL)) {
-            rx = mbed::Callback<void()>(mptr, tptr);
+            rx = ::mbed::Callback<void()>(mptr, tptr);
         }
 
         USBCDC::unlock();
@@ -166,7 +171,7 @@ public:
         USBCDC::lock();
 
         if (fptr != NULL) {
-            rx = mbed::Callback<void()>(fptr);
+            rx = ::mbed::Callback<void()>(fptr);
         }
 
         USBCDC::unlock();
@@ -177,7 +182,7 @@ public:
      *
      * @param cb Callback to attach
      */
-    void attach(mbed::Callback<void()> &cb)
+    void attach(::mbed::Callback<void()> cb)
     {
         USBCDC::lock();
 
@@ -200,11 +205,64 @@ public:
         USBCDC::unlock();
     }
 
+    // Arduino APIs
+    void begin(unsigned long);
+
+    void begin(unsigned long baudrate, uint16_t config) {
+        begin(baudrate);
+    }
+
+    void end() {
+    }
+
+    int available(void) {
+        return rx_buffer.available();
+    }
+
+    int peek(void) {
+        return rx_buffer.peek();
+    }
+
+    int read(void) {
+        return rx_buffer.read_char();
+    }
+
+    void flush(void) {}
+
+    size_t write(uint8_t c) {
+        if (!connected()) {
+            return 0;
+        }
+        return _putc(c);
+    }
+
+    size_t write(const uint8_t* buf, size_t size) {
+        if (!connected()) {
+            return 0;
+        }
+        return send((uint8_t*)buf, size);
+    }
+    using Print::write; // pull in write(str) and write(buf, size) from Print
+
+    operator bool() {
+        return connected();
+    }
+
+private:
+    RingBufferN<256> rx_buffer;
+    rtos::Thread t;
+
+    void onInterrupt() {
+        while (rx_buffer.availableForStore() && _available()) {
+            rx_buffer.store_char(_getc());
+        }
+    }
+
 protected:
     virtual void data_rx();
     virtual void line_coding_changed(int baud, int bits, int parity, int stop)
     {
-        assert_locked();
+        USBCDC::assert_locked();
 
         if (_settings_changed_callback) {
             _settings_changed_callback(baud, bits, parity, stop);
@@ -212,8 +270,11 @@ protected:
     }
 
 private:
-    mbed::Callback<void()> rx;
+    ::mbed::Callback<void()> rx;
     void (*_settings_changed_callback)(int baud, int bits, int parity, int stop);
 };
+}
+
+extern arduino::USBSerial SerialUSB;
 
 #endif

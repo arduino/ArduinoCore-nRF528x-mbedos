@@ -25,7 +25,7 @@
 #include "USBMouse.h"
 #include "USBKeyboard.h"
 #include "platform/Stream.h"
-#include "USBHID.h"
+#include "PluggableUSBHID.h"
 #include "PlatformMutex.h"
 
 /**
@@ -69,7 +69,9 @@
  *
  * @note Synchronization level: Thread safe
  */
-class USBMouseKeyboard: public USBHID, public mbed::Stream {
+namespace arduino {
+
+class USBMouseKeyboard: public USBHID, public ::mbed::Stream {
 public:
 
     /**
@@ -242,5 +244,6 @@ private:
     //dummy otherwise it doesn't compile (we must define all methods of an abstract class)
     virtual int _getc();
 };
+}
 
 #endif
