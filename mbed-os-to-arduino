@@ -64,17 +64,7 @@ mv $ARDUINOCORE/../../cores/arduino/mbed/drivers/SPI.h $ARDUINOCORE/../../cores/
 
 # TODO
 # - Add -DUSE_ARDUINO_PINOUT to targets with a variant.cpp
-# - Add include path for rpc library to envie
-# - Remove -fno-exception from Envie cppflags
 #
 #
 
 exit 0
-
-##################
-
-Using Arduino as an mbed library
-
-echo -e "arduino/cores/arduino/main.cpp\n arduino/cores/arduino/mbed/\narduino/libraries/" > .mbedignore
-#add ARDUINO_AS_MBED_LIBRARY=1 to macros section in mbed_app.json
-echo "https://github.com/arduino/ArduinoCore-mbed#bf6e64771ebe20285b0364756dff856ebbc679dc" > arduino.lib
