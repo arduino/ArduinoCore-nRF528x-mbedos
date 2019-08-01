@@ -39,7 +39,7 @@ unsigned long micros() {
 
 void delay(unsigned long ms)
 {
-  thread_sleep_for(ms);
+  ThisThread::sleep_for(ms);
 }
 
 void delayMicroseconds(unsigned int us)
