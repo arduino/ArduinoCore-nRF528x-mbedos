@@ -22,7 +22,9 @@
 
 #if defined(__cplusplus)
 #if !defined(ARDUINO_AS_MBED_LIBRARY)
-#define PinMode MbedPinMode
+// Temporary workaround for:
+// https://github.com/arduino/ArduinoCore-nRF528x-mbedos/issues/9
+//#define PinMode MbedPinMode
 #ifdef F
 #define Arduino_F F
 #undef F
@@ -30,7 +32,8 @@
 #define F Mbed_F
 #endif // !ARDUINO_AS_MBED_LIBRARY
 #include "mbed.h"
-#undef PinMode
+//#undef PinMode
+#define PinMode ArduinoPinMode
 #undef F
 #endif //__cplusplus
 
