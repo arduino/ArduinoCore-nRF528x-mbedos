@@ -37,11 +37,6 @@ unsigned long micros() {
   return t.read_us();
 }
 
-void delay(unsigned long ms)
-{
-  rtos::ThisThread::sleep_for(ms);
-}
-
 void delayMicroseconds(unsigned int us)
 {
   wait_us(us);
@@ -50,8 +45,4 @@ void delayMicroseconds(unsigned int us)
 void init()
 {
   t.start();
-}
-
-void yield() {
-  rtos::ThisThread::yield();
 }
