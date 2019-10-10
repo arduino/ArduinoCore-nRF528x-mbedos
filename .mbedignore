@@ -7,3 +7,5 @@ variants/E*
 variants/M*
 libraries/micro*
 libraries/WiFi*
+libraries/USB*
+cores/arduino/USB/*
