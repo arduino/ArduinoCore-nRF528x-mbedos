@@ -37,6 +37,9 @@ void UART::begin(unsigned long baudrate) {
 	if (_serial == NULL) {
 		_serial = new mbed::RawSerial(tx, rx, baudrate);
 	}
+	if (rts != NC) {
+		_serial->set_flow_control(mbed::SerialBase::Flow::RTSCTS, rts, cts);
+	}
 	_serial->attach(mbed::callback(this, &UART::on_rx), mbed::SerialBase::RxIrq);
 }
 
@@ -70,25 +73,66 @@ void UART::flush() {
 
 size_t UART::write(uint8_t c) {
 	while (!_serial->writeable()) {}
-	return _serial->putc(c);
+	int ret = _serial->putc(c);
+	return ret == -1 ? 0 : 1;
 }
 
-/*
+#ifdef DEVICE_SERIAL_ASYNCH
 size_t UART::write(const uint8_t* c, size_t len) {
-	//while (!_serial->writeable()) {}
-	return _serial->puts(c, len);
+
+	uint8_t* p = (uint8_t*)c;
+	uint8_t* end = p + len;
+
+	while (!_serial->writeable()) yield();
+
+	auto _write_block = [this](const uint8_t* c, size_t len) {
+		_block = true;
+		_serial->write(c, len, mbed::callback(this, &UART::block_tx));
+		while (_block == true) yield();
+		return len;
+	};
+
+	while ( p < end ) {
+		size_t _len = end - p < WRITE_BUFF_SZ ? len % WRITE_BUFF_SZ : WRITE_BUFF_SZ;
+		p += _write_block(p, _len);
+	}
+
+	return len;
 }
-*/
+#endif
+
+void UART::block_tx(int _a) {
+	_block = false;
+}
+
 UART::operator bool() {
 	return 1;
 }
 
 #if SERIAL_HOWMANY > 0
-UART UART1(SERIAL1_TX, SERIAL1_RX);
+
+#ifdef SERIAL1_RTS
+UART UART1(SERIAL1_TX, SERIAL1_RX, SERIAL1_RTS, SERIAL1_CTS);
+#else
+UART UART1(SERIAL1_TX, SERIAL1_RX, NC, NC);
+#endif
+
 #if SERIAL_HOWMANY > 1
-UART UART2(SERIAL2_TX, SERIAL2_RX);
+
+#ifdef SERIAL2_RTS
+UART UART2(SERIAL2_TX, SERIAL2_RX, SERIAL2_RTS, SERIAL2_CTS);
+#else
+UART UART2(SERIAL2_TX, SERIAL2_RX, NC, NC);
+#endif
+
 #if SERIAL_HOWMANY > 2
-UART UART3(SERIAL3_TX, SERIAL3_RX);
+
+#ifdef SERIAL3_RTS
+UART UART1(SERIAL3_TX, SERIAL3_RX, SERIAL3_RTS, SERIAL3_CTS);
+#else
+UART UART1(SERIAL3_TX, SERIAL3_RX, NC, NC);
+#endif
+
 #endif
 #endif
 #endif
