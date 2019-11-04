@@ -88,12 +88,22 @@ cd mbed-os && find . | grep "\.h" | xargs -I % cp --parents % $ARDUINOCORE/../..
 cp mbed-os/platform/cxxsupport/mstd_* $ARDUINOCORE/../../cores/arduino/mbed/platform/cxxsupport/
 
 #TODO: add #include "mbed_config.h" in "mbed.h"
-#TODO: rename drivers/SPI.h in drivers/SPIMaster.h and modify include in mbed.h
 mv $ARDUINOCORE/../../cores/arduino/mbed/drivers/SPI.h $ARDUINOCORE/../../cores/arduino/mbed/drivers/SPIMaster.h
+sed -i 's#drivers/SPI.h#drivers/SPIMaster.h#g' cores/arduino/mbed/mbed.h
+sed -i 's?#include "platform/mbed_version.h"?#include "platform/mbed_version.h"\n#include "mbed_config.h"?g' cores/arduino/mbed/mbed.h
 
-# TODO
+# Slim down targets folder, leaving only the used include paths
+git add cores/arduino/mbed/targets/
+git commit -m "backup commit"
+rm -rf cores/arduino/mbed/targets/* | cat variants/*/includes.txt | grep mbed/targets/TARGET_ | sed 's#-iwithprefixbefore#cores/arduino#g' | xargs git checkout
+git reset HEAD~1
+
 # - Add -DUSE_ARDUINO_PINOUT to targets with a variant.cpp
-#
-#
+for BOARDNAME in "${BOARDNAMES[@]}"
+do
+if [ -f variants/$BOARDNAME/variant.cpp ]; then
+echo "-DUSE_ARDUINO_PINOUT" >> variants/$BOARDNAME/defines.txt
+fi
+done
 
 exit 0
