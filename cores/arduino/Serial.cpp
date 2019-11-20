@@ -93,7 +93,7 @@ size_t UART::write(const uint8_t* c, size_t len) {
 	};
 
 	while ( p < end ) {
-		size_t _len = end - p < WRITE_BUFF_SZ ? len % WRITE_BUFF_SZ : WRITE_BUFF_SZ;
+		size_t _len = (size_t)(end - p) < WRITE_BUFF_SZ ? len % WRITE_BUFF_SZ : WRITE_BUFF_SZ;
 		p += _write_block(p, _len);
 	}
 
