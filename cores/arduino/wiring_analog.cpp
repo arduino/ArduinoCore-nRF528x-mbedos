@@ -26,47 +26,23 @@
 static int write_resolution = 8;
 static int read_resolution = 10;
 
-#ifdef digitalPinToPwmObj
-static mbed::PwmOut* PinNameToPwmObj(PinName P) {
-  // reverse search for pinName in g_APinDescription[P].name fields
-  for (pin_size_t i=0; i < PINS_COUNT; i++) {
-    if (g_APinDescription[i].name == P) {
-      return g_APinDescription[i].pwm;
-    }
-  }
-  return NULL;
-}
-#endif
+#ifdef digitalPinToPwm
 
 void analogWrite(PinName pin, int val)
 {
-  float percent = (float)val/(float)(1 << write_resolution);
-#ifdef digitalPinToPwmObj
-  mbed::PwmOut* pwm = PinNameToPwmObj(pin);
-  if (pwm == NULL) {
-    pwm = new mbed::PwmOut(pin);
-    digitalPinToPwmObj(pin) = pwm;
-    pwm->period_ms(2); //500Hz
-  }
-#else
-  // attention: this leaks badly
-  mbed::PwmOut* pwm = new mbed::PwmOut(digitalPinToPinName(pin));
-#endif
-  pwm->write(percent);
+  analogWrite(PinNameToIndex(pin), val);
 }
 
 void analogWrite(pin_size_t pin, int val)
 {
   float percent = (float)val/(float)(1 << write_resolution);
-#ifdef digitalPinToPwmObj
-  mbed::PwmOut* pwm = digitalPinToPwmObj(pin);
+  mbed::PwmOut* pwm = digitalPinToPwm(pin);
   if (pwm == NULL) {
     pwm = new mbed::PwmOut(digitalPinToPinName(pin));
-    digitalPinToPwmObj(pin) = pwm;
+    digitalPinToPwm(pin) = pwm;
     pwm->period_ms(2); //500Hz
   }
   pwm->write(percent);
-#endif
 }
 
 void analogWriteResolution(int bits)
@@ -74,21 +50,21 @@ void analogWriteResolution(int bits)
   write_resolution = bits;
 }
 
+#else
+
+#warning "Arduino style analogWrite can only be used with boards defining an Arduino pinmap"
+
+#endif //digitalPinToPwm
+
 int analogRead(PinName pin)
 {
   int multiply_factor = 1;
-#ifdef ANALOG_BUG_MBED
-  multiply_factor = 4;
-#endif
   return (mbed::AnalogIn(pin).read_u16() >> (16 - read_resolution)) * multiply_factor;
 }
 
 int analogRead(pin_size_t pin)
 {
   int multiply_factor = 1;
-#ifdef ANALOG_BUG_MBED
-  multiply_factor = 4;
-#endif
   return (mbed::AnalogIn(analogPinToPinName(pin)).read_u16() >> (16 - read_resolution)) * multiply_factor;
 }
 

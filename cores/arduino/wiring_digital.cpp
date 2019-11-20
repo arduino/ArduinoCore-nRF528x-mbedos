@@ -23,58 +23,84 @@
 #include "Arduino.h"
 #include "pins_arduino.h"
 
+#ifdef digitalPinToGpio
+
 void pinMode(PinName pin, PinMode mode)
 {
-  switch (mode) {
-    case INPUT:
-      mbed::DigitalIn(pin, PullNone);
-      break;
-    case OUTPUT:
-      mbed::DigitalOut(pin, 0);
-      break;
-    case INPUT_PULLUP:
-      mbed::DigitalIn(pin, PullUp);
-      break;
-    case INPUT_PULLDOWN:
-      mbed::DigitalIn(pin, PullDown);
-      break;
-  }
+  pinMode(PinNameToIndex(pin), mode);
 }
 
 void pinMode(pin_size_t pin, PinMode mode)
 {
+  gpio_t* gpio = digitalPinToGpio(pin);
+  if (gpio == NULL) {
+    gpio = new gpio_t();
+    digitalPinToGpio(pin) = gpio;
+  }
+
   switch (mode) {
     case INPUT:
-      mbed::DigitalIn(digitalPinToPinName(pin), PullNone);
+      gpio_init_in_ex(gpio, digitalPinToPinName(pin), PullNone);
       break;
     case OUTPUT:
-      mbed::DigitalOut(digitalPinToPinName(pin));
+      gpio_init_out(gpio, digitalPinToPinName(pin));
       break;
     case INPUT_PULLUP:
-      mbed::DigitalIn(digitalPinToPinName(pin), PullUp);
+      gpio_init_in_ex(gpio, digitalPinToPinName(pin), PullUp);
       break;
     case INPUT_PULLDOWN:
-      mbed::DigitalIn(digitalPinToPinName(pin), PullDown);
+      gpio_init_in_ex(gpio, digitalPinToPinName(pin), PullDown);
       break;
   }
 }
 
 void digitalWrite(PinName pin, PinStatus val)
 {
-  mbed::DigitalOut(pin).write((int)val);
+  digitalWrite(PinNameToIndex(pin), val);
 }
 
 void digitalWrite(pin_size_t pin, PinStatus val)
 {
-	mbed::DigitalOut(digitalPinToPinName(pin)).write((int)val);
+  gpio_write(digitalPinToGpio(pin), (int)val);
 }
 
 PinStatus digitalRead(PinName pin)
 {
+  return (PinStatus)digitalRead(PinNameToIndex(pin));
+}
+
+PinStatus digitalRead(pin_size_t pin)
+{
+  return (PinStatus)gpio_read(digitalPinToGpio(pin));
+}
+
+#else
+
+void pinMode(PinName pin, PinMode mode) {
+}
+
+void pinMode(pin_size_t pin, PinMode mode) {
+  return pinMode((PinName)pin, mode);
+}
+
+PinStatus digitalRead(PinName pin)
+{
+  #warning "digitalRead always applies default pull"
   return (PinStatus)mbed::DigitalIn(pin).read();
 }
 
 PinStatus digitalRead(pin_size_t pin)
 {
-	return (PinStatus)mbed::DigitalIn(digitalPinToPinName(pin)).read();
+  return digitalRead((PinName)pin);
 }
+
+void digitalWrite(PinName pin, PinStatus val)
+{
+  mbed::DigitalOut(pin, (int)val);
+}
+
+void digitalWrite(pin_size_t pin, PinStatus val) {
+  digitalWrite((PinName)pin, val);
+}
+
+#endif // digitalPinToGpio
