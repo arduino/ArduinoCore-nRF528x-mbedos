@@ -49,7 +49,10 @@ void detachInterrupt(pin_size_t interruptNum) {
 void attachInterruptParam(PinName interruptNum, voidFuncPtrParam func, PinStatus mode, void* param) {
   detachInterrupt(interruptNum);
   mbed::InterruptIn* irq = new mbed::InterruptIn(interruptNum);
-  if (mode == FALLING) {
+  if (mode == CHANGE) {
+    irq->rise(mbed::callback(func, param));
+    irq->fall(mbed::callback(func, param));
+  } else if (mode == FALLING) {
     irq->fall(mbed::callback(func, param));
   } else {
     irq->rise(mbed::callback(func, param));
@@ -66,7 +69,10 @@ void attachInterrupt(PinName interruptNum, voidFuncPtr func, PinStatus mode) {
 void attachInterruptParam(pin_size_t interruptNum, voidFuncPtrParam func, PinStatus mode, void* param) {
   detachInterrupt(interruptNum);
   mbed::InterruptIn* irq = new mbed::InterruptIn(digitalPinToPinName(interruptNum));
-  if (mode == FALLING) {
+  if (mode == CHANGE) {
+    irq->rise(mbed::callback(func, param));
+    irq->fall(mbed::callback(func, param));
+  } else if (mode == FALLING) {
     irq->fall(mbed::callback(func, param));
   } else {
     irq->rise(mbed::callback(func, param));
