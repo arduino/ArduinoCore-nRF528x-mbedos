@@ -38,13 +38,14 @@
  *
  * \param interface_ptr interface
  * \param cert_chain certificate chain
- * \param timer_settings timer settings
+ * \param sec_timer_cfg timer configuration
+ * \param sec_prot_cfg protocol configuration
  *
  * \return < 0 failure
  * \return >= 0 success
  *
  */
-int8_t ws_pae_supp_init(protocol_interface_info_entry_t *interface_ptr, const sec_prot_certs_t *certs, timer_settings_t *timer_settings);
+int8_t ws_pae_supp_init(protocol_interface_info_entry_t *interface_ptr, const sec_prot_certs_t *certs, sec_timer_cfg_t *sec_timer_cfg, sec_prot_cfg_t *sec_prot_cfg);
 
 /**
  * ws_pae_supp_delete deletes PAE supplicant
@@ -56,29 +57,6 @@ int8_t ws_pae_supp_init(protocol_interface_info_entry_t *interface_ptr, const se
  *
  */
 int8_t ws_pae_supp_delete(protocol_interface_info_entry_t *interface_ptr);
-
-
-/**
- * ws_pae_supp_timing_adjust Adjust retries and timings of the 4WH protocol
- *
- * Timing value is a generic number between 0 to 32 that goes from fast and
- * reactive network to low bandwidth and long latency.
- *
- * example value definitions:
- * 0-8 very fast network
- * 9-16 medium network
- * 16-24 slow network
- * 25-32 extremely slow network
- *
- * There is no need to have lots variations in every layer if protocol is not very active in any case.
- *
- * \param timing Timing value.
- *
- * \return < 0 failure
- * \return >= 0 success
- *
- */
-int8_t ws_pae_supp_timing_adjust(uint8_t timing);
 
 /**
  * ws_pae_supp_fast_timer PAE supplicant fast timer call
@@ -183,6 +161,18 @@ int8_t ws_pae_supp_gtk_hash_update(protocol_interface_info_entry_t *interface_pt
 int8_t ws_pae_supp_nw_key_index_update(protocol_interface_info_entry_t *interface_ptr, uint8_t index);
 
 /**
+ *  ws_pae_supp_gtks_set set supplicant GTKs
+ *
+ * \param interface_ptr interface
+ * \param gtks GTKs
+ *
+ * \return < 0 failure
+ * \return >= 0 success
+ *
+ */
+int8_t ws_pae_supp_gtks_set(protocol_interface_info_entry_t *interface_ptr, sec_prot_gtk_keys_t *gtks);
+
+/**
  * ws_pae_supp_eapol_target_remove remove EAPOL target set using authentication start
  *
  * \param interface_ptr interface
@@ -206,10 +196,11 @@ typedef void ws_pae_supp_nw_key_index_set(protocol_interface_info_entry_t *inter
  * ws_pae_supp_auth_completed authentication completed callback
  *
  * \param interface_ptr interface
- * \param success true if authentication was successful
+ * \param result result, either ok or failure reason
+ * \param target_eui_64 EAPOL target in case of failure or NULL
  *
  */
-typedef void ws_pae_supp_auth_completed(protocol_interface_info_entry_t *interface_ptr, bool success);
+typedef void ws_pae_supp_auth_completed(protocol_interface_info_entry_t *interface_ptr, auth_result_e result, uint8_t *target_eui_64);
 
 /**
  * ws_pae_supp_nw_key_insert network key insert callback
@@ -224,6 +215,16 @@ typedef void ws_pae_supp_auth_completed(protocol_interface_info_entry_t *interfa
 typedef int8_t ws_pae_supp_nw_key_insert(protocol_interface_info_entry_t *interface_ptr, sec_prot_gtk_keys_t *gtks);
 
 /**
+ * ws_pae_supp_gtk_hash_ptr_get get pointer to GTK hash storage callback
+ *
+ * \param interface_ptr interface
+ *
+ * \return pointer to GTK has storage or NULL
+ *
+ */
+typedef uint8_t *ws_pae_supp_gtk_hash_ptr_get(protocol_interface_info_entry_t *interface_ptr);
+
+/**
  * ws_pae_supp_cb_register register PEA supplicant callbacks
  *
  * \param interface_ptr interface
@@ -232,11 +233,11 @@ typedef int8_t ws_pae_supp_nw_key_insert(protocol_interface_info_entry_t *interf
  * \param nw_key_index_set network send key index callback
  *
  */
-void ws_pae_supp_cb_register(protocol_interface_info_entry_t *interface_ptr, ws_pae_supp_auth_completed *completed, ws_pae_supp_nw_key_insert *nw_key_insert, ws_pae_supp_nw_key_index_set *nw_key_index_set);
+void ws_pae_supp_cb_register(protocol_interface_info_entry_t *interface_ptr, ws_pae_supp_auth_completed *completed, ws_pae_supp_nw_key_insert *nw_key_insert, ws_pae_supp_nw_key_index_set *nw_key_index_set, ws_pae_supp_gtk_hash_ptr_get *gtk_hash_ptr_get);
 
 #else
 
-#define ws_pae_supp_init(interface_ptr, certs, timer_settings) 1
+#define ws_pae_supp_init(interface_ptr, certs, sec_timer_cfg, sec_prot_cfg) 1
 #define ws_pae_supp_delete NULL
 #define ws_pae_supp_timing_adjust(timing) 1
 #define ws_pae_supp_cb_register(interface_ptr, completed, nw_key_insert, nw_key_index_set)
@@ -249,6 +250,7 @@ void ws_pae_supp_cb_register(protocol_interface_info_entry_t *interface_ptr, ws_
 #define ws_pae_supp_border_router_addr_read NULL
 #define ws_pae_supp_gtk_hash_update NULL
 #define ws_pae_supp_nw_key_index_update NULL
+#define ws_pae_supp_gtks_set(interface_ptr, gtks)
 #define ws_pae_supp_eapol_target_remove(interface_ptr)
 
 #endif

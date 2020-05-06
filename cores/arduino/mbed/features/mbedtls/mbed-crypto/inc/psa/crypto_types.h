@@ -63,13 +63,29 @@ typedef int32_t psa_status_t;
 
 /** \brief Encoding of a key type.
  */
-typedef uint32_t psa_key_type_t;
+typedef uint16_t psa_key_type_t;
 
-/** The type of PSA elliptic curve identifiers. */
-typedef uint16_t psa_ecc_curve_t;
+/** The type of PSA elliptic curve family identifiers.
+ *
+ * The curve identifier is required to create an ECC key using the
+ * PSA_KEY_TYPE_ECC_KEY_PAIR() or PSA_KEY_TYPE_ECC_PUBLIC_KEY()
+ * macros.
+ *
+ * Values defined by this standard will never be in the range 0x80-0xff.
+ * Vendors who define additional families must use an encoding in this range.
+ */
+typedef uint8_t psa_ecc_curve_t;
 
-/** The type of PSA Diffie-Hellman group identifiers. */
-typedef uint16_t psa_dh_group_t;
+/** The type of PSA Diffie-Hellman group family identifiers.
+ *
+ * The group identifier is required to create an Diffie-Hellman key using the
+ * PSA_KEY_TYPE_DH_KEY_PAIR() or PSA_KEY_TYPE_DH_PUBLIC_KEY()
+ * macros.
+ *
+ * Values defined by this standard will never be in the range 0x80-0xff.
+ * Vendors who define additional families must use an encoding in this range.
+ */
+typedef uint8_t psa_dh_group_t;
 
 /** \brief Encoding of a cryptographic algorithm.
  *
@@ -206,11 +222,12 @@ typedef uint32_t psa_key_usage_t;
  * values:
  *
  * - lifetime: #PSA_KEY_LIFETIME_VOLATILE.
- * - key identifier: unspecified.
- * - type: \c 0.
- * - key size: \c 0.
- * - usage flags: \c 0.
- * - algorithm: \c 0.
+ * - key identifier: 0 (which is not a valid key identifier).
+ * - type: \c 0 (meaning that the type is unspecified).
+ * - key size: \c 0 (meaning that the size is unspecified).
+ * - usage flags: \c 0 (which allows no usage except exporting a public key).
+ * - algorithm: \c 0 (which allows no cryptographic usage, but allows
+ *   exporting).
  *
  * A typical sequence to create a key is as follows:
  * -# Create and initialize an attribute structure.

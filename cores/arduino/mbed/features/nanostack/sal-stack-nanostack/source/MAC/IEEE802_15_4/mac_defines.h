@@ -39,6 +39,7 @@ typedef enum mac_event_t {
     MAC_TIMER_CCA,
     MAC_TX_FAIL,
     MAC_TX_TIMEOUT,
+    MAC_ACK_SECURITY_FAIL,
     MAC_UNKNOWN_DESTINATION,
     MAC_TX_PRECOND_FAIL
 } mac_event_t;
@@ -201,6 +202,7 @@ typedef struct protocol_interface_rf_mac_setup {
     mac_scan_type_t scan_type;
 
     uint8_t mac_channel;
+    uint8_t mac_tx_start_channel;
     //uint8_t cca_failure;
 
     /* MAC TX Queue */
@@ -223,6 +225,8 @@ typedef struct protocol_interface_rf_mac_setup {
     uint8_t aUnitBackoffPeriod;
     uint8_t number_of_csma_ca_periods;  /**< Number of CSMA-CA periods */
     uint16_t multi_cca_interval;        /**< Length of the additional CSMA-CA period(s) in microseconds */
+    uint16_t phy_mtu_size;
+    phy_802_15_4_mode_t current_mac_mode;
     /* Indirect queue parameters */
     struct mac_pre_build_frame *indirect_pd_data_request_queue;
     struct mac_pre_build_frame enhanced_ack_buffer;
@@ -243,6 +247,7 @@ typedef struct protocol_interface_rf_mac_setup {
     uint32_t mlme_tick_count;
     uint32_t symbol_rate;
     uint32_t symbol_time_us;
+    uint32_t datarate;
     uint8_t max_ED;
     uint16_t mlme_ED_counter;
     mac_tx_status_t mac_tx_status;

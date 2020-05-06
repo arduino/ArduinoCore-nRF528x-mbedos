@@ -45,7 +45,7 @@
 #endif
 
 /* Fix the config here. Not convenient to put an #ifdef _WIN32 in config.h as
- * it would confuse config.pl. */
+ * it would confuse config.py. */
 #if !defined(MBEDTLS_PLATFORM_SNPRINTF_ALT) && \
     !defined(MBEDTLS_PLATFORM_SNPRINTF_MACRO)
 #define MBEDTLS_PLATFORM_SNPRINTF_ALT
@@ -341,6 +341,14 @@
 #if defined(MBEDTLS_PKCS11_C) && !defined(MBEDTLS_PK_C)
 #error "MBEDTLS_PKCS11_C defined, but not all prerequisites"
 #endif
+
+#if defined(MBEDTLS_PKCS11_C)
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "MBEDTLS_PKCS11_C is deprecated and will be removed in a future version of Mbed TLS"
+#elif defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "MBEDTLS_PKCS11_C is deprecated and will be removed in a future version of Mbed TLS"
+#endif
+#endif /* MBEDTLS_PKCS11_C */
 
 #if defined(MBEDTLS_PLATFORM_EXIT_ALT) && !defined(MBEDTLS_PLATFORM_C)
 #error "MBEDTLS_PLATFORM_EXIT_ALT defined, but not all prerequisites"
@@ -768,6 +776,22 @@
     defined(MBEDTLS_HAVE_ASM)
 #error "MBEDTLS_HAVE_INT32/MBEDTLS_HAVE_INT64 and MBEDTLS_HAVE_ASM cannot be defined simultaneously"
 #endif /* (MBEDTLS_HAVE_INT32 || MBEDTLS_HAVE_INT64) && MBEDTLS_HAVE_ASM */
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3)
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "MBEDTLS_SSL_PROTO_SSL3 is deprecated and will be removed in a future version of Mbed TLS"
+#elif defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "MBEDTLS_SSL_PROTO_SSL3 is deprecated and will be removed in a future version of Mbed TLS"
+#endif
+#endif /* MBEDTLS_SSL_PROTO_SSL3 */
+
+#if defined(MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO)
+#if defined(MBEDTLS_DEPRECATED_REMOVED)
+#error "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is deprecated and will be removed in a future version of Mbed TLS"
+#elif defined(MBEDTLS_DEPRECATED_WARNING)
+#warning "MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO is deprecated and will be removed in a future version of Mbed TLS"
+#endif
+#endif /* MBEDTLS_SSL_SRV_SUPPORT_SSLV2_CLIENT_HELLO */
 
 /*
  * Avoid warning from -pedantic. This is a convenient place for this
