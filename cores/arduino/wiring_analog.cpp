@@ -40,7 +40,7 @@ static mbed::PwmOut* PinNameToPwmObj(PinName P) {
 
 void analogWrite(PinName pin, int val)
 {
-  float percent = (float)val/(float)(1 << write_resolution);
+  float percent = (float)val/(float)((1 << write_resolution)-1);
 #ifdef digitalPinToPwmObj
   mbed::PwmOut* pwm = PinNameToPwmObj(pin);
   if (pwm == NULL) {
@@ -57,7 +57,7 @@ void analogWrite(PinName pin, int val)
 
 void analogWrite(pin_size_t pin, int val)
 {
-  float percent = (float)val/(float)(1 << write_resolution);
+  float percent = (float)val/(float)((1 << write_resolution)-1);
 #ifdef digitalPinToPwmObj
   mbed::PwmOut* pwm = digitalPinToPwmObj(pin);
   if (pwm == NULL) {
