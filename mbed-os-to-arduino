@@ -264,6 +264,8 @@ for tuple in "${TUPLES[@]}"; do
     IFS="$OLD_IFS"
 done
 
+export REMOTE_BRANCH="origin/mbed-os-5.15"
+
 export MBED_CORE_LOCATION=${MBED_CORE_LOCATION:-$PWD}
 export MBED_CLEAN=${MBED_CLEAN:-0}
 export MBED_UPDATE=${MBED_UPDATE:-0}
