@@ -21,6 +21,10 @@
 */
 
 #include "wiring_private.h"
+#include "mbed/drivers/LowPowerTimer.h"
+#include "mbed/drivers/Timer.h"
+#include "mbed/rtos/rtos.h"
+#include "mbed/platform/mbed_wait_api.h"
 
 #if DEVICE_LPTICKER
 static mbed::LowPowerTimer t;
@@ -39,7 +43,11 @@ unsigned long micros() {
 
 void delay(unsigned long ms)
 {
+#ifndef NO_RTOS
   rtos::ThisThread::sleep_for(ms);
+#else
+  wait_us(ms * 1000);
+#endif
 }
 
 void delayMicroseconds(unsigned int us)
@@ -53,5 +61,7 @@ void init()
 }
 
 void yield() {
+#ifndef NO_RTOS
   rtos::ThisThread::yield();
+#endif
 }

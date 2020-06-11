@@ -17,7 +17,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Arduino_h
+#if !defined(Arduino_h) && !defined(ARDUINO_LIB_DISCOVERY_PHASE)
 #define Arduino_h
 
 #if defined(__cplusplus)
@@ -29,7 +29,10 @@
 #endif // F (mbed included after arduino.h)
 #define F Mbed_F
 #endif // !ARDUINO_AS_MBED_LIBRARY
-#include "mbed.h"
+#include "mbed_config.h"
+#include "mbed/drivers/InterruptIn.h"
+#include "mbed/drivers/PwmOut.h"
+#include "mbed/drivers/AnalogIn.h"
 #undef PinMode
 #undef F
 #endif //__cplusplus
@@ -80,15 +83,20 @@ void analogWriteResolution(int bits);
 
 #include "pins_arduino.h"
 
-/* Types used for the table below */
+#ifdef __cplusplus
+// Types used for the table below
 typedef struct _PinDescription
 {
   PinName name;
   mbed::InterruptIn* irq;
   mbed::PwmOut* pwm;
+  mbed::AnalogIn* analog;
+  gpio_t* gpio;
 } PinDescription ;
 
-/* Pins table to be instantiated into variant.cpp */
+int PinNameToIndex(PinName P);
+
+// Pins table to be instantiated into variant.cpp
 extern PinDescription g_APinDescription[];
 
 #include "Serial.h"
@@ -105,6 +113,8 @@ extern PinDescription g_APinDescription[];
 #endif
 
 #include "overloads.h"
+#endif
+
 #include "macros.h"
 
 #endif
