@@ -69,16 +69,12 @@ void attachInterruptParam(pin_size_t interruptNum, voidFuncPtrParam func, PinSta
   digitalPinToInterruptObj(interruptNum) = irq;
   // Give a default pullup for the pin, since calling InterruptIn with PinMode is impossible
   if (digitalPinToGpio(interruptNum) == NULL) {
-    switch(mode){
-      case FALLING:
-        pinMode(interruptNum, INPUT_PULLUP);
-        break;
-      case RISING:
-        pinMode(interruptNum, INPUT_PULLDOWN);
-        break;
-      default:
-        pinMode(interruptNum, INPUT);
-        break;
+    if (mode == FALLING) {
+      pinMode(interruptNum, INPUT_PULLUP);
+    } else if (mode == RISING) {
+      pinMode(interruptNum, INPUT_PULLDOWN);
+    } else {
+      pinMode(interruptNum, INPUT);
     }
   }
 }
