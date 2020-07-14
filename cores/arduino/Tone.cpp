@@ -1,4 +1,5 @@
 #include "Arduino.h"
+#include "mbed.h"
 
 class Tone {
     mbed::DigitalOut   *pin;

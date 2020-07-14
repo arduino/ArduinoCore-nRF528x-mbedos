@@ -17,20 +17,25 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef Arduino_h
+#if !defined(Arduino_h) && !defined(ARDUINO_LIB_DISCOVERY_PHASE)
 #define Arduino_h
 
 #if defined(__cplusplus)
 #if !defined(ARDUINO_AS_MBED_LIBRARY)
-#define PinMode MbedPinMode
+
+#include "pinmode_arduino.h"
+
 #ifdef F
 #define Arduino_F F
 #undef F
 #endif // F (mbed included after arduino.h)
 #define F Mbed_F
 #endif // !ARDUINO_AS_MBED_LIBRARY
-#include "mbed.h"
-#undef PinMode
+#include "mbed_config.h"
+#include "mbed/drivers/InterruptIn.h"
+#include "mbed/drivers/PwmOut.h"
+#include "mbed/drivers/AnalogIn.h"
+#include "mbed/drivers/DigitalInOut.h"
 #undef F
 #endif //__cplusplus
 
@@ -80,16 +85,42 @@ void analogWriteResolution(int bits);
 
 #include "pins_arduino.h"
 
-/* Types used for the table below */
+#ifdef __cplusplus
+// Types used for the table below
 typedef struct _PinDescription
 {
   PinName name;
   mbed::InterruptIn* irq;
   mbed::PwmOut* pwm;
+  mbed::DigitalInOut* gpio;
 } PinDescription ;
 
-/* Pins table to be instantiated into variant.cpp */
+typedef struct _AnalogPinDescription
+{
+  PinName name;
+  mbed::AnalogIn* adc;
+} AnalogPinDescription ;
+
+int PinNameToIndex(PinName P);
+
+// Pins table to be instantiated into variant.cpp
 extern PinDescription g_APinDescription[];
+extern AnalogPinDescription g_AAnalogPinDescription[];
+
+#ifdef ANALOG_CONFIG
+
+typedef enum _AnalogReferenceMode AnalogReferenceMode;
+void analogReference(uint8_t mode);
+/* nRF specific function to change analog acquisition time */
+typedef enum _AnalogAcquisitionTime AnalogAcquisitionTime;
+void analogAcquisitionTime(uint8_t time);
+
+/* Function to reconfigure already active ADC channels */
+void analogUpdate();
+extern bool isAdcConfigChanged;
+extern analogin_config_t adcCurrentConfig;
+
+#endif
 
 #include "Serial.h"
 #if defined(SERIAL_CDC)
@@ -105,6 +136,8 @@ extern PinDescription g_APinDescription[];
 #endif
 
 #include "overloads.h"
+#endif
+
 #include "macros.h"
 
 #endif

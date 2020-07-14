@@ -16,6 +16,9 @@
  */
 
 #include "Arduino.h"
+
+#if defined(DEVICE_USBDEVICE) && defined(SERIAL_CDC)
+
 #include "stdint.h"
 #include "PluggableUSBDevice.h"
 #include "EndpointResolver.h"
@@ -289,3 +292,5 @@ arduino::PluggableUSBDevice& PluggableUSBD()
     static arduino::PluggableUSBDevice obj(BOARD_VENDORID, BOARD_PRODUCTID);
     return obj;
 }
+
+#endif

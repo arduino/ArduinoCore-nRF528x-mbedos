@@ -23,25 +23,29 @@
 #pragma once
 #ifdef USE_ARDUINO_PINOUT
 
-#define analogPinToPinName(P)			(P < A0 ? g_APinDescription[P+A0].name : g_APinDescription[P].name)
-#define digitalPinToPinName(P)			(g_APinDescription[P].name)
-#define digitalPinToInterrupt(P)		(P)
-#define digitalPinToInterruptObj(P)		(g_APinDescription[P].irq)
-#define digitalPinToPwmObj(P)		    (g_APinDescription[P].pwm)
+#define analogPinToPinName(P)       (P >= PINS_COUNT ? NC : P < A0 ? g_APinDescription[P+A0].name : g_APinDescription[P].name)
+#define analogPinToAdcObj(P)		    (P < A0 ? g_AAnalogPinDescription[P].adc : g_AAnalogPinDescription[P-A0].adc)
+#define digitalPinToPinName(P)      (P >= PINS_COUNT ? NC : g_APinDescription[P].name)
+#define digitalPinToInterruptObj(P) (g_APinDescription[P].irq)
+#define digitalPinToPwm(P)          (g_APinDescription[P].pwm)
+#define digitalPinToGpio(P)         (g_APinDescription[P].gpio)
+
+// this is needed for backwards compatibility
+#define digitalPinToInterrupt(P)    (P)
 
 #else
 
-#define analogPinToPinName(P)			((PinName)P)
-#define digitalPinToPinName(P)			((PinName)P)
-#define digitalPinToInterrupt(P) 		((PinName)P)
+#define analogPinToPinName(P)       ((PinName)P)
+#define digitalPinToPinName(P)      ((PinName)P)
+#define digitalPinToInterrupt(P)    ((PinName)P)
 
 #endif
 
-#define REDIRECT_STDOUT_TO(stream) 			namespace mbed {										\
-											FileHandle *mbed_override_console(int fd) { 			\
-												return &stream;										\
-											}														\
-											FileHandle *mbed_target_override_console(int fd) { 		\
-												return &stream;										\
-											}														\
-											}
+#define REDIRECT_STDOUT_TO(stream)    namespace mbed { \
+                                        FileHandle *mbed_override_console(int fd) { \
+                                        return &stream; \
+                                       } \
+                                        FileHandle *mbed_target_override_console(int fd) { \
+                                        return &stream; \
+                                       } \
+                                      }

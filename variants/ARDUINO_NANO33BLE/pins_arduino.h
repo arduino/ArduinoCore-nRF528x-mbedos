@@ -1,10 +1,33 @@
 #pragma once
-#include "mbed_config.h"
 #include <stdint.h>
 #include <macros.h>
 
 #ifndef __PINS_ARDUINO__
 #define __PINS_ARDUINO__
+
+#define ANALOG_CONFIG
+
+/* Analog reference options 
+ * Different possibilities available combining Reference and Gain
+ */
+enum _AnalogReferenceMode
+{
+  AR_VDD,         // 3.3 V
+  AR_INTERNAL,    // 0.6 V
+  AR_INTERNAL1V2, // 1.2 V
+  AR_INTERNAL2V4  // 2.4 V
+};
+
+/* Analog acquisition time options */
+enum _AnalogAcquisitionTime
+{
+  AT_3_US,         
+  AT_5_US,    
+  AT_10_US, // Default value
+  AT_15_US,
+  AT_20_US,  
+  AT_40_US  
+};
 
 // Frequency of the board main oscillator
 #define VARIANT_MAINOSC (32768ul)
@@ -21,7 +44,7 @@ extern "C" unsigned int PINCOUNT_fn();
 #endif
 #define PINS_COUNT           (PINCOUNT_fn())
 #define NUM_DIGITAL_PINS     (21u)
-#define NUM_ANALOG_INPUTS    (7u)
+#define NUM_ANALOG_INPUTS    (8u)
 #define NUM_ANALOG_OUTPUTS   (0u)
 
 // LEDs
@@ -140,10 +163,14 @@ static const uint8_t SCK  = PIN_SPI_SCK;
 
 #define DFU_MAGIC_SERIAL_ONLY_RESET   0xb0
 
+#define WIRE_HOWMANY		2
+
 #define I2C_SDA				(digitalPinToPinName(PIN_WIRE_SDA))
 #define I2C_SCL				(digitalPinToPinName(PIN_WIRE_SCL))
 #define I2C_SDA1			(digitalPinToPinName(PIN_WIRE_SDA1))
 #define I2C_SCL1			(digitalPinToPinName(PIN_WIRE_SCL1))
+
+#define SPI_HOWMANY			1
 
 #define SPI_MISO			(digitalPinToPinName(PIN_SPI_MISO))
 #define SPI_MOSI			(digitalPinToPinName(PIN_SPI_MOSI))

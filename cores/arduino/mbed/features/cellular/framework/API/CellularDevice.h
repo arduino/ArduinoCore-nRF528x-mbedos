@@ -90,6 +90,18 @@ public:
      */
     virtual ~CellularDevice();
 
+    /** Clear modem to a default initial state
+     *
+     *  Clear persistent user data from the modem, such as PDP contexts.
+     *
+     *  @pre All open network services on modem, such as contexts and sockets, must be closed.
+     *  @post Modem power off/on may be needed to clear modem's runtime state.
+     *  @remark CellularStateMachine calls this on connect when `cellular.clear-on-connect: true`.
+     *
+     *  @return         NSAPI_ERROR_OK on success, otherwise modem may be need power cycling
+     */
+    virtual nsapi_error_t clear();
+
     /** Sets the modem up for powering on
      *  This is equivalent to plugging in the device, i.e., attaching power and serial port.
      *  In general, hard_power_on and soft_power_on provides a simple hardware abstraction layer
@@ -210,6 +222,7 @@ public:
     /** Stop the current operation. Operations: set_device_ready, set_sim_ready, register_to_network, attach_to_network
      *
      */
+    MBED_DEPRECATED_SINCE("mbed-os-5.15", "Use CellularDevice::shutdown() instead.")
     void stop();
 
     /** Get the current FileHandle item used when communicating with the modem.
@@ -302,6 +315,7 @@ public:
      */
     virtual CellularNetwork *open_network(FileHandle *fh = NULL) = 0;
 
+#if MBED_CONF_CELLULAR_USE_SMS || defined(DOXYGEN_ONLY)
     /** Create new CellularSMS interface.
      *
      *  @param fh    file handle used in communication to modem. This can be, for example, UART handle. If null, then the default
@@ -309,6 +323,12 @@ public:
      *  @return      New instance of interface CellularSMS.
      */
     virtual CellularSMS *open_sms(FileHandle *fh = NULL) = 0;
+
+    /** Closes the opened CellularSMS by deleting the CellularSMS instance.
+     */
+    virtual void close_sms() = 0;
+
+#endif // MBED_CONF_CELLULAR_USE_SMS
 
     /** Create new CellularInformation interface.
      *
@@ -321,10 +341,6 @@ public:
     /** Closes the opened CellularNetwork by deleting the CellularNetwork instance.
      */
     virtual void close_network() = 0;
-
-    /** Closes the opened CellularSMS by deleting the CellularSMS instance.
-     */
-    virtual void close_sms() = 0;
 
     /** Closes the opened CellularInformation by deleting the CellularInformation instance.
      */
@@ -431,6 +447,13 @@ public:
      */
     virtual nsapi_error_t release_at_handler(ATHandler *at_handler) = 0;
 
+    /** Sets cellular modem to given baud rate
+     *
+     *  @param baud_rate
+     *  @return NSAPI_ERROR_OK on success, NSAPI_ERROR_DEVICE_ERROR on failure
+     */
+    virtual nsapi_error_t set_baud_rate(int baud_rate) = 0;
+
 protected:
     friend class AT_CellularNetwork;
     friend class AT_CellularContext;
@@ -453,7 +476,9 @@ protected:
     virtual void cellular_callback(nsapi_event_t ev, intptr_t ptr, CellularContext *ctx = NULL);
     void stm_callback(nsapi_event_t ev, intptr_t ptr);
     int _network_ref_count;
+#if MBED_CONF_CELLULAR_USE_SMS
     int _sms_ref_count;
+#endif // MBED_CONF_CELLULAR_USE_SMS
     int _info_ref_count;
     FileHandle *_fh;
     events::EventQueue _queue;

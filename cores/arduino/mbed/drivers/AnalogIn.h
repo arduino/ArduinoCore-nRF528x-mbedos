@@ -69,9 +69,23 @@ public:
 
     /** Create an AnalogIn, connected to the specified pin
      *
+     * @param pinmap reference to structure which holds static pinmap.
+     */
+    AnalogIn(const PinMap &pinmap);
+    AnalogIn(const PinMap &&) = delete; // prevent passing of temporary objects
+
+    /** Create an AnalogIn, connected to the specified pin
+     *
      * @param pin AnalogIn pin to connect to
      */
     AnalogIn(PinName pin);
+
+
+    /** Reconfigure the adc object using the given configuration
+     *
+     * @param config reference to structure which holds AnalogIn configuration
+     */
+    void configure(const analogin_config_t &config);
 
     /** Read the input voltage, represented as a float in the range [0.0, 1.0]
      *
@@ -135,4 +149,3 @@ protected:
 #endif
 
 #endif
-

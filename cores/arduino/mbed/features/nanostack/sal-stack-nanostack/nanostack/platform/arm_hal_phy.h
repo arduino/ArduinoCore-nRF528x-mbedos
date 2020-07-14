@@ -79,7 +79,8 @@ typedef enum {
     PHY_EXTENSION_SET_RF_CONFIGURATION,  /**<  Set RF configuration using phy_rf_channel_configuration_s structure */
     PHY_EXTENSION_FILTERING_SUPPORT, /**<  Return filtering modes that can be supported by the PHY driver. See phy_link_filters_e */
     PHY_EXTENSION_SET_TX_POWER, /**<  Set TX output power which is given as percentage of maximum. 0 is the lowest possible TX power and 100 is the highest possible TX power */
-    PHY_EXTENSION_SET_CCA_THRESHOLD /**<  Set CCA threshold which is given as percentage of maximum threshold. 0 is the lowest(strictest) possible threshold and 100 is the highest possible threshold */
+    PHY_EXTENSION_SET_CCA_THRESHOLD, /**<  Set CCA threshold which is given as percentage of maximum threshold. 0 is the lowest(strictest) possible threshold and 100 is the highest possible threshold */
+    PHY_EXTENSION_SET_802_15_4_MODE /**<  Set IEEE 802.15.4 mode as defined by phy_802_15_4_mode_t*/
 } phy_extension_type_e;
 
 /** Address types */
@@ -161,7 +162,8 @@ typedef enum {
     CHANNEL_PAGE_5 = 5,     ///< Page 5
     CHANNEL_PAGE_6 = 6,     ///< Page 6
     CHANNEL_PAGE_9 = 9,     ///< Page 9
-    CHANNEL_PAGE_10 = 10    ///< Page 10
+    CHANNEL_PAGE_10 = 10,   ///< Page 10
+    CHANNEL_PAGE_UNDEFINED  ///< Undefined
 } channel_page_e;
 
 /** Modulation index */
@@ -170,6 +172,15 @@ typedef enum {
     MODULATION_INDEX_1_0 = 1,   ///< Modulation index 1.0
     MODULATION_INDEX_UNDEFINED  ///< Modulation index undefined
 } phy_modulation_index_e;
+
+/**
+ * @brief enum phy_802_15_4_mode_t IEEE 802.15.4 mode
+ *
+ */
+typedef enum {
+    IEEE_802_15_4_2011,    /**<IEEE 802.15.4-2011*/
+    IEEE_802_15_4G_2012    /**<IEEE 802.15.4g-2012*/
+} phy_802_15_4_mode_t;
 
 /** Channel configuration */
 typedef struct phy_rf_channel_configuration_s {
@@ -192,6 +203,10 @@ typedef struct phy_rf_statistics_s {
     uint32_t crc_fails;        ///< CRC failures
     uint32_t tx_timeouts;      ///< transmission timeouts
     uint32_t rx_timeouts;      ///< reception timeouts
+    uint64_t tx_active_time;   ///< transmission active time
+    uint64_t rx_active_time;   ///< reception active time
+    uint32_t tx_bytes;         ///< transmitted bytes
+    uint32_t rx_bytes;         ///< received bytes
 } phy_rf_statistics_s;
 
 /** Virtual data request */

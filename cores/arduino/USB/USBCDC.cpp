@@ -15,6 +15,12 @@
  * limitations under the License.
  */
 
+
+#include "Arduino.h"
+#include "PeripheralPins.h"
+
+#if DEVICE_USBDEVICE && defined(SERIAL_CDC)
+
 #include "stdint.h"
 #include "USBCDC.h"
 #include "EndpointResolver.h"
@@ -611,3 +617,5 @@ const uint8_t *USBCDC::configuration_desc(uint8_t index)
         return NULL;
     }
 }
+
+#endif

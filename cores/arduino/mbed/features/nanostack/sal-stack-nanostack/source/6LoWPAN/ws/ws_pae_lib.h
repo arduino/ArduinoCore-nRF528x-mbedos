@@ -88,7 +88,7 @@ int8_t ws_pae_lib_kmp_list_delete(kmp_list_t *kmp_list, kmp_api_t *kmp);
 void ws_pae_lib_kmp_list_free(kmp_list_t *kmp_list);
 
 /**
- * ws_pae_lib_kmp_list_type_get gets KMP entry from KMP list based on KMP type
+ * ws_pae_lib_kmp_list_type_get gets KMP from KMP list based on KMP type
  *
  * \param kmp_list KMP list
  * \param type type
@@ -98,6 +98,18 @@ void ws_pae_lib_kmp_list_free(kmp_list_t *kmp_list);
  *
  */
 kmp_api_t *ws_pae_lib_kmp_list_type_get(kmp_list_t *kmp_list, kmp_type_e type);
+
+/**
+ * ws_pae_lib_kmp_list_instance_id_get gets KMP from KMP list based on instance identifier
+ *
+ * \param kmp_list KMP list
+ * \param instance_id instance identifier
+ *
+ * \return KMP on success
+ * \return NULL on failure
+ *
+ */
+kmp_api_t *ws_pae_lib_kmp_list_instance_id_get(kmp_list_t *kmp_list, uint8_t instance_id);
 
 /**
  * ws_pae_lib_kmp_list_entry_get gets KMP entry from KMP list based on KMP
@@ -221,7 +233,7 @@ bool ws_pae_lib_supp_list_timer_update(supp_list_t *active_supp_list, supp_list_
  * \param seconds seconds
  *
  */
-void ws_pae_lib_supp_list_slow_timer_update(supp_list_t *supp_list, timer_settings_t *timer_settings, uint16_t seconds);
+void ws_pae_lib_supp_list_slow_timer_update(supp_list_t *supp_list, sec_timer_cfg_t *timer_settings, uint16_t seconds);
 
 /**
  *  ws_pae_lib_supp_list_timer_update updates supplicant timers
@@ -259,6 +271,25 @@ void ws_pae_lib_supp_delete(supp_entry_t *entry);
  *
  */
 void ws_pae_lib_supp_timer_ticks_set(supp_entry_t *entry, uint32_t ticks);
+
+/**
+ *  ws_pae_lib_supp_timer_ticks_add adds supplicant timer ticks
+ *
+ * \param entry supplicant entry
+ * \param ticks ticks
+ *
+ */
+void ws_pae_lib_supp_timer_ticks_add(supp_entry_t *entry, uint32_t ticks);
+
+/**
+ *  ws_pae_lib_supp_timer_is_running checks whether supplicant timer is running
+ *
+ * \param entry supplicant entry
+ *
+ * \return TRUE timer is running, FALSE timer is not running
+ *
+ */
+bool ws_pae_lib_supp_timer_is_running(supp_entry_t *entry);
 
 /**
  *  ws_pae_lib_supp_list_to_active move supplicant to active supplicants list
