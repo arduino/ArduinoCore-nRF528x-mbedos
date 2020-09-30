@@ -45,14 +45,22 @@ void analogWrite(pin_size_t pin, int val)
   if (pin >= PINS_COUNT) {
     return;
   }
-  float percent = (float)val/(float)((1 << write_resolution)-1);
   mbed::PwmOut* pwm = digitalPinToPwm(pin);
-  if (pwm == NULL) {
+  if ((pwm == NULL) && (val > 0)) {
     pwm = new mbed::PwmOut(digitalPinToPinName(pin));
     digitalPinToPwm(pin) = pwm;
     pwm->period_ms(2); //500Hz
+    float percent = (float)val/(float)((1 << write_resolution)-1);
+    pwm->write(percent);
+  } 
+  else if ((pwm != NULL) && (val < 0)) {
+    delete pwm;
+    digitalPinToPwm(pin) = NULL;
+  } 
+  else if ((pwm != NULL) && (val > 0)) {
+    float percent = (float)val/(float)((1 << write_resolution)-1);
+    pwm->write(percent);
   }
-  pwm->write(percent);
 }
 
 void analogWriteResolution(int bits)
