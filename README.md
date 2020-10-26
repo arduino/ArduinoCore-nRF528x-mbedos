@@ -1,6 +1,10 @@
-# Arduino Core for mbed enabled devices
+# [Archived] Arduino Core for mbed enabled devices
 
 The repository contains the Arduino APIs and IDE integration files targeting a generic mbed-enabled board
+
+This repository will continue tracking mbed 5.x series and new releases will only happen in case of security bugs.
+
+For new contibutions please refer to https://github.com/arduino/ArduinoCore-mbed 
 
 ## Installation
 
