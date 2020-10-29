@@ -145,7 +145,13 @@ generate_includes () {
 	echo -n " copying to destination... "
 
 	cut -d'/' -f3- < "$ARDUINOVARIANT"/includes.txt | grep '^targets/TARGET_' \
-	| sed -e 's#\(.*\)#+ \1#' -e '$a+ targets/' -e '$a+ *.h' -e '$a- *' \
+	| sed -e 's#\(.*\)#+ \1#' \
+		  -e '$a\
+		  + targets/' \
+		  -e '$a\
+		  + *.h' \
+		  -e '$a\
+		  - *' \
 	| rsync -avvz --include-from=- mbed-os/ "$ARDUINOCOREMBED"/
 
 	echo " done."
