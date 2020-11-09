@@ -2,17 +2,49 @@
 
 set -ef
 
+platform=${OSTYPE//[0-9.-]*/}
+
+# Default case for Linux sed
+sed_exec="sed"
+case "$platform" in
+  	# For macOS, GNU sed
+  	darwin) 
+  		sed_exec="gsed"
+		;;
+	*)
+  	
+	echo "Unknown Operating system $OSTYPE"
+  	exit 1
+esac
+
+exists() { type -t "$1" > /dev/null 2>&1; }
+
 check_tools () {
-	echo -n "Checking for prerequisites..."
-	if not hash jq &>/dev/null ; then
+	echo "Checking for prerequisites on $platform..."
+	if ! exists jq; 
+	then
 		echo "Please, install jq."
 		exit 1
 	fi
 
-	if not hash rsync &>/dev/null ; then
+	if ! exists rsync; 
+	then
 		echo "Please, install rsync."
 		exit 1
 	fi
+	
+	if ! exists tac; 
+	then
+		echo "Please, install tac."
+		exit 1
+	fi
+
+	if ! exists $sed_exec; 
+	then
+		echo "Please, install $sed_exec."
+		exit 1
+	fi
+
 	echo " done."
 }
 
@@ -126,7 +158,7 @@ mbed_compile () {
 
 generate_defines () {
 	echo -n "Generating defines..."
-	cut -f2 -d":" < "$BOARDNAME".macros.txt | tr ' ' '\n'  | sed 's#\"#\\"#g' | sort > "$ARDUINOVARIANT"/defines.txt
+	cut -f2 -d":" < "$BOARDNAME".macros.txt | tr ' ' '\n'  | $sed_exec 's#\"#\\"#g' | sort > "$ARDUINOVARIANT"/defines.txt
 	echo "-DMBED_NO_GLOBAL_USING_DIRECTIVE=1" >> "$ARDUINOVARIANT"/defines.txt
 	if [ -f "$ARDUINOVARIANT"/variant.cpp ]; then
 		echo '-DUSE_ARDUINO_PINOUT' >> "$ARDUINOVARIANT"/defines.txt
@@ -138,14 +170,14 @@ generate_includes () {
 	echo -n "Generating includes..."
 
 	find ./BUILD/"$BOARDNAME"/GCC_ARM/ -type f -name '.include*' -print0 | xargs -0 cat \
-	| tr ' ' '\n' | tr -d '"' | sed -e 's#-I./mbed-os#-iwithprefixbefore/mbed#g' \
-	| sed '/^-I./d' | tac \
+	| tr ' ' '\n' | tr -d '"' | $sed_exec -e 's#-I./mbed-os#-iwithprefixbefore/mbed#g' \
+	| $sed_exec '/^-I./d' | tac \
 	> "$ARDUINOVARIANT"/includes.txt
 
 	echo -n " copying to destination... "
 
 	cut -d'/' -f3- < "$ARDUINOVARIANT"/includes.txt | grep '^targets/TARGET_' \
-	| sed -e 's#\(.*\)#+ \1#' -e '$a+ targets/' -e '$a+ *.h' -e '$a- *' \
+	| $sed_exec -e 's#\(.*\)#+ \1#' -e '$a+ targets/' -e '$a+ *.h' -e '$a- *' \
 	| rsync -avvz --include-from=- mbed-os/ "$ARDUINOCOREMBED"/
 
 	echo " done."
@@ -187,18 +219,21 @@ copy_core_files () {
 
 patch_mbed_h () {
 	echo -n "Patching 'mbed.h'..."
-	if [ x`uname` == xLinux ]; then
-		sed -i 's?#include "platform/mbed_version.h"?#include "platform/mbed_version.h"\n#include "mbed_config.h"?g' \
-		"$ARDUINOCOREMBED"/mbed.h
-	else
-		ed "$ARDUINOCOREMBED"/mbed.h >/dev/null <<EOF
+	case "$platform" in
+		linux)
+			$sed_exec -i 's?#include "platform/mbed_version.h"?#include "platform/mbed_version.h"\n#include "mbed_config.h"?g' \
+			"$ARDUINOCOREMBED"/mbed.h
+			;;
+		*)
+			ed "$ARDUINOCOREMBED"/mbed.h >/dev/null <<EOF
 /#include "platform\/mbed_version.h"/
 a
 #include "mbed_config.h"
 .
 wq
 EOF
-	fi
+			;;
+	esac
 	echo " done."
 }
 
@@ -206,7 +241,7 @@ patch_spi_h () {
 	echo -n "Patching SPI headers..."
 	mv "$ARDUINOCOREMBED"/drivers/SPI.h "$ARDUINOCOREMBED"/drivers/SPIMaster.h
 	for header in mbed.h features/nfc/controllers/PN512SPITransportDriver.h components/storage/blockdevice/COMPONENT_SD/SDBlockDevice.h; do
-		sed -i.bak 's#drivers/SPI\.h#drivers/SPIMaster\.h#g' "$ARDUINOCOREMBED"/$header
+		$sed_exec -i.bak 's#drivers/SPI\.h#drivers/SPIMaster\.h#g' "$ARDUINOCOREMBED"/$header
 		rm "$ARDUINOCOREMBED"/$header.bak
 	done
 	echo " done."
@@ -237,7 +272,7 @@ done
 shift $(( OPTIND - 1 ))
 
 if [ $# -eq 0 ] ; then
-	echo "Usage: $(basename $0) [-c] [-u] [-r /path/to/local/repo] [-b mbed/remote/branch] [-p /mbed/core/location] [VARIANT1:BOARD1 VARIANT2:BOARD1 VARIANT3:BOARD3 ... ]"
+	echo "Usage: $(basename "$0") [-c] [-u] [-r /path/to/local/repo] [-b mbed/remote/branch] [-p /mbed/core/location] [VARIANT1:BOARD1 VARIANT2:BOARD1 VARIANT3:BOARD3 ... ]"
 	echo
 	echo " -c clean Mbed application BUILD directory"
 	echo " -u update to latest mbed-os release"
@@ -247,7 +282,7 @@ if [ $# -eq 0 ] ; then
 	echo " -p specify local mbed core directory (defaults to PWD)"
 	echo
 	echo "Example:"
-	echo " $(basename $0) -a ARDUINO_NANO33BLE:ARDUINO_NANO33BLE CHALLENGE_PMC_R2DX:ARDUINO_NANO33BLE"
+	echo " $(basename "$0") -a ARDUINO_NANO33BLE:ARDUINO_NANO33BLE CHALLENGE_PMC_R2DX:ARDUINO_NANO33BLE"
 	exit 0
 fi
 
@@ -313,7 +348,7 @@ patch_mbed_h
 patch_spi_h
 
 echo
-echo "[$(basename $0)] MbedOS core generation ended succesfully."
+echo "[$(basename "$0")] MbedOS core generation ended succesfully."
 echo
 
 # TODO
